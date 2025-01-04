@@ -1,29 +1,30 @@
-name: build
-
+name: Build
 on:
   push:
     branches: [ main ]
-
+  pull_request:
+    branches: [ main ]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Java setup
-        uses: actions/setup-java@v2
+        uses: actions/checkout@v4
         with:
-          distribution: 'adopt'
+          submodules: recursive
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
           java-version: 8
-          check-latest: true
-      - uses: burrunan/gradle-cache-action@v1
-        name: Build
+          distribution: "adopt"
+          cache: "gradle"
+      - name: Build with Gradle
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean build
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
         with:
-          job-id: jdk8
-          arguments: build --no-build-cache
-          gradle-version: wrapper
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: LiquidBounce++ Beta
-          path: build/libs/liquidbounceplusplus-0.3.1.jar
+          name: skidbounce
+          path: build/libs/*.jar
+          if-no-files-found: error
